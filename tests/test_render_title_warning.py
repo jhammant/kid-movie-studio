@@ -90,11 +90,19 @@ def test_chrome_title_stays_inside_title_safe_area(title):
 
 
 def test_default_layout_keeps_the_original_title():
-    # Arrange / Act
+    # Arrange
+    from kms import fonts
+    system_font = not fonts.font_path("impact")[0].startswith(str(fonts.BUNDLED))
+
+    # Act
     lines, px = tw.layout_title("ROBOTS REVENGE")
 
-    # Assert
-    assert (lines, px) == (["ROBOTS", "REVENGE"], 300)
+    # Assert: the original's two lines; at its exact size with the font it was designed in
+    assert lines == ["ROBOTS", "REVENGE"]
+    if system_font:
+        assert px == 300
+    else:
+        assert 240 <= px <= 300
 
 
 def test_alert_comes_from_the_villain_unless_overridden():

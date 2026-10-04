@@ -23,38 +23,32 @@ TAKES = {
     "deep": ("Deep and slow", "A deep, calm, menacing voice with a slight metal buzz.",
              dict(main=("Daniel", 110, 0.80), layers=[], ring=40, ring_mix=0.2, crush=0,
                   echo="aecho=0.8:0.5:60:0.2")),
-    "classic": ("Classic robot", "Old-school computer voice with a metal ring.",
+    "classic": ("Classic robot", "Old-school computer voice with a metal ring. Names can get a bit fuzzy.",
                 dict(main=("Fred", 110, 0.88), layers=[], ring=32, ring_mix=0.35, crush=0,
-                     echo="aecho=0.8:0.4:40:0.2", plain_name=True)),
-    "whisper": ("Creepy whisper", "A deep voice with a breathy ghost whisper underneath.",
+                     echo="aecho=0.8:0.4:40:0.2")),
+    "whisper": ("Creepy whisper", "A deep voice with a breathy ghost whisper underneath. Names can get fuzzy.",
                 dict(main=("Daniel", 105, 0.76), layers=[("Daniel", 105, 1.0, 0.5, "whisper")], ring=0,
                      ring_mix=0, crush=0, echo="aecho=0.8:0.5:80:0.2")),
-    "glitchy": ("Glitchy evil", "A crunchy, glitchy, evil robot.",
+    "glitchy": ("Glitchy evil", "A crunchy, glitchy, evil robot. Names can get a bit fuzzy.",
                 dict(main=("Ralph", 110, 0.86), layers=[], ring=55, ring_mix=0.25, crush=7,
-                     echo="aecho=0.8:0.4:50:0.2", plain_name=True)),
+                     echo="aecho=0.8:0.4:50:0.2")),
     "chorus": ("Monster chorus", "Three deep voices at once, like a whole army.",
                dict(main=("Daniel", 110, 0.82), layers=[("Daniel", 110, 0.72, 0.6), ("Daniel", 110, 0.92, 0.45)],
                     ring=0, ring_mix=0, crush=0, echo="aecho=0.8:0.5:70:0.2")),
+    "sinister": ("Sinister", "Slow and sinister, with a dark echo that hangs in the air.", dict(chain="sinister")),
 }
 
 
-def tts_line(line, hero, plain_name=False):
-    """The line as the speech engine should read it: the hero's name spelled out for deep
-    voices (so 'Penny' doesn't come out as 'pen'), and a long pause at '...' breaks."""
+def tts_line(line, hero=None, plain_name=True):
+    """The line as the speech engine should read it, with a long pause at the first '...' break.
+
+    Names are left as written: checked with whisper, plain spellings came through the effects
+    and spelled-out ones ("Pen-nee") didn't. If the computer mangles a name, set `hero_say` in
+    movie.yaml to a sounds-like spelling and the studio uses that instead."""
     text = line
-    if hero and not plain_name:
-        text = re.sub(re.escape(hero), "-".join(_syllables(hero)), text, flags=re.I)
     if tts.engine() == "say":
         text = re.sub(r"\.\.\.\s+", "... [[slnc 900]] ", text, count=1)
     return text
-
-
-def _syllables(word):
-    """Rough syllables: Penny -> Pen-nee, Bartholomew -> Bar-tho-lo-mew. Good enough for TTS."""
-    parts = re.findall(r"[^aeiouy]*[aeiouy]+(?:[^aeiouy](?![aeiouy]))?", word, flags=re.I) or [word]
-    if word.lower().endswith("y") and len(parts) > 1:
-        parts[-1] = parts[-1][:-1] + "ee"
-    return parts
 
 
 def _speak(text, voice, rate, pitch, tmp, tag):
@@ -71,9 +65,12 @@ def render_voice(out_wav, *, take="deep", line="We'll see, Penny... We'll see...
     if take not in TAKES:
         raise KeyError(f"unknown voice {take!r}; choose from {', '.join(TAKES)}")
     t = TAKES[take][2]
-    text = tts_line(line, hero, t.get("plain_name", False))
     out_wav = Path(out_wav)
     out_wav.parent.mkdir(parents=True, exist_ok=True)
+    if t.get("chain") == "sinister":  # the post-credits voice: its own, heavier effects chain
+        from kms.render.glowing_eyes import sinister_voice
+        return sinister_voice(out_wav, line=line, hero=hero, seed=seed)
+    text = tts_line(line, hero)
     with tempfile.TemporaryDirectory() as tmp:
         x = _speak(text, *t["main"], tmp, "main")
         x = x / (np.abs(x).max() + 1e-6)

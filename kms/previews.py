@@ -27,7 +27,10 @@ def inputs(p, group):
         "channel": {"programme": s.get("programme"), "channels": p.data.get("channels"), "crawl": s.get("crawl"),
                     "headline": s.get("headline"), "director": p.director},
         "signal": {"title": p.title, "villain": s.get("villain"), "lead_in": _lead_in_stamp(p)},
-        "voice": {"line": s.get("villain_line"), "hero": s.get("hero"), "picture": _villain_stamp(p)},
+        "voice": {"line": s.get("villain_line"), "hero": s.get("hero"), "say": s.get("hero_say"),
+                  "picture": _villain_stamp(p)},
+        "eyes": {"line": s.get("villain_line"), "hero": s.get("hero"), "say": s.get("hero_say"),
+                 "voice": p.picks.get("voice"), "picture": _villain_stamp(p)},
         "ending": {"ending": s.get("ending")},
         "cover": {"title": p.title, "tagline": p.tagline, "cast": p.cast, "channel": p.picks.get("channel"),
                   "frames": _cover_stamp(p)},
@@ -184,7 +187,7 @@ def render_one(p, group, option, ctx):
 
 
 # where in each preview its still is taken: once the title, logo or card has landed
-THUMB_AT = {"title": 0.8, "channel": 0.88, "signal": 0.85, "voice": 0.5, "ending": 0.6}
+THUMB_AT = {"title": 0.8, "channel": 0.88, "signal": 0.85, "voice": 0.5, "eyes": 0.45, "ending": 0.6}
 
 
 def thumb(web, at=0.66):

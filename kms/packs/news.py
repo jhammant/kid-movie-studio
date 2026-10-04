@@ -56,6 +56,7 @@ class NewsPack(Pack):
             Group("voice", "The villain's voice", f"“{p.story_text('villain_line', '')}” Turn the sound up!", [
                 Option(tid, name, desc) for tid, (name, desc, _) in _voice_takes().items()
             ]),
+            *self._eyes_group(p),
             Group("ending", "The very end", "The last thing on screen.", [
                 Option("to-be-continued", p.story_text("ending", "To Be Continued") or "To Be Continued",
                        "Glowing eyes in the dark, the words, and the dots landing one by one. There'll be a sequel!"),
@@ -66,6 +67,37 @@ class NewsPack(Pack):
                       Option(i, name, desc) for i, name, desc in DIRECTOR_TITLES], kind="text"),
             Group("cover", "Poster picture", "The picture on the film's poster.", self._cover_options(p), kind="image"),
         ]
+
+    def _villain_scene(self, p):
+        return next((s for s in p.scenes if s.kind == "make" and s.target == "villain-line"), None)
+
+    def _eyes_group(self, p):
+        s = self._villain_scene(p)
+        if not (s and s.get("eyes")):
+            return []
+        return [Group("eyes", "Glowing eyes", "Should the villain's eyes glow when it talks?", [
+            Option("glow", "Red glowing eyes", "The eyes light up red in time with the voice. Spooky!"),
+            Option("none", "No glow", "Just the voice. Sneaky!"),
+        ], default="glow")]
+
+    def voice_line(self, p):
+        """(line, name) for the speech engine: `hero_say` stands in for a name it mispronounces."""
+        line, hero = p.story_text("villain_line", "We'll see..."), p.story_text("hero", "")
+        say = p.story_text("hero_say", "")
+        if hero and say:
+            line = re.sub(re.escape(hero), say, line, flags=re.I)
+            hero = say
+        return line, hero
+
+    def voice_wav(self, p, take):
+        """The picked take of the villain's line, made once and kept (kit/pieces/voice-*.wav)."""
+        from kms.render import voices as m
+        line, hero = self.voice_line(p)
+        tag = hashlib.sha1(f"{take}|{line}|{hero}".encode()).hexdigest()[:8]
+        wav = p.kit_dir("pieces") / f"voice-{take}-{tag}.wav"
+        if not wav.exists():
+            m.render_voice(wav, take=take, line=line, hero=hero)
+        return wav
 
     def _channel_options(self, p):
         opts = []
@@ -121,8 +153,19 @@ class NewsPack(Pack):
         if group == "voice":
             from kms.render import voices as m
             clip, at = self._villain_picture(p)
-            return m.render(out, take=option, line=p.story_text("villain_line", "We'll see..."),
-                            hero=p.story_text("hero", ""), picture=clip, picture_at=at, ctx=ctx)
+            line, hero = self.voice_line(p)
+            return m.render(out, take=option, line=line, hero=hero, picture=clip, picture_at=at, ctx=ctx)
+        if group == "eyes":
+            s = self._villain_scene(p)
+            clip = p.footage_file(s.get("clip")) if s.get("clip") else None
+            if clip is None or not media.readable(clip):  # not filmed yet: show it on a stand-in robot
+                from kms import demo
+                clip = p.kit_dir("previews", "eyes") / "stand-in-robot.mp4"
+                if not media.readable(clip):
+                    demo.robot_chair(clip, fps=p.fps, seconds=7.0)
+                s = type(s)(s.id, s.kind, s.target, {**s.raw, "from": 0, "to": None})
+            take, _ = self.choice(p, "voice")
+            return self._speak_over(p, s, clip, self.voice_wav(p, take), out, ctx, glow=option == "glow")
         if group == "ending":
             from kms.render import end_card as m
             if option == "the-end":
@@ -190,22 +233,26 @@ class NewsPack(Pack):
         raise KeyError(f"the news pack can't make {scene.target!r}")
 
     def _villain_line(self, p, scene, out, ctx):
-        """The villain's voice (the kid's pick) laid over the close-up, the clip's own sound ducked."""
-        from kms.render import voices as m
+        """The villain's voice (the kid's pick) over the close-up, eyes glowing if they picked that."""
         take, _ = self.choice(p, "voice")
-        line, hero = p.story_text("villain_line", "We'll see..."), p.story_text("hero", "")
-        tag = hashlib.sha1(f"{take}|{line}|{hero}".encode()).hexdigest()[:8]
-        wav = p.kit_dir("pieces") / f"voice-{take}-{tag}.wav"
-        if not wav.exists():
-            m.render_voice(wav, take=take, line=line, hero=hero)
         clip = p.footage_file(scene.get("clip"))
         if not media.readable(clip):
             raise FileNotFoundError(f"{clip.name} isn't in footage/ yet")
+        eyes, _ = self.choice(p, "eyes") if scene.get("eyes") else (None, False)
+        return self._speak_over(p, scene, clip, self.voice_wav(p, take), out, ctx, glow=eyes == "glow")
+
+    def _speak_over(self, p, scene, clip, wav, out, ctx, glow=False):
         at = float(scene.get("voice_at") or 1.0)
         start = float(scene.get("from") or 0)
-        vdur = media.duration(wav) or 4
         end = scene.get("to")
-        length = float(end) - start if end else min((media.duration(clip) or 0) - start, at + vdur + 1.0)
+        if glow:
+            from kms.render import glowing_eyes as m
+            return m.render(out, clip=clip, voice_wav=wav, voice_at=at, start=start,
+                            end=float(end) if end is not None else None, ctx=ctx)
+        vdur = media.duration(wav) or 4
+        length = float(end) - start if end is not None else min((media.duration(clip) or 0) - start, at + vdur + 1.0)
+        if ctx.limit_frames:
+            length = min(length, ctx.limit_frames / ctx.fps)
         ms = int(at * 1000)
         media.run([media.ffmpeg(), "-v", "error", "-y", "-ss", f"{start:.3f}", "-t", f"{length:.3f}", "-i", clip,
                    "-i", wav, "-filter_complex",

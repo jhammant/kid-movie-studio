@@ -43,7 +43,8 @@ story:
     - MORE ON THIS STORY AT NINE
   villain: ROBOT                       # who the baddies are (one word)
   villain_line: "We'll see, Penny... We'll see..."
-  hero: Penny                          # the name the villain says; the voices are checked for it
+  hero: Penny                          # the name the villain says
+  # hero_say: Pen knee                 # only if the computer says the name wrong: spell it how it sounds
   ending: To Be Continued              # the words on the end card
 
 # Ideas for the news channel's name. The kid picks one on the pick page.
@@ -112,6 +113,7 @@ scenes:
     clip: robot-chair.mp4
     shot: A close-up of the toy robot, sitting very still. Hold it for 10 seconds.
     voice_at: 1.0                        # when the robot speaks, in seconds
+    eyes: true                           # offer glowing eyes (needs two dark round eyes in the shot)
 
   - id: ending
     pick: ending
