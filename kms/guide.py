@@ -114,7 +114,7 @@ def steps(p):
         if not out_f.exists() or any(_mtime(src) > _mtime(out_f) for src in srcs):
             key_todo.append(s.id)
     out.append(Step(
-        "key", GROWNUP, "Green-screen the wall shots", "5–20 min (computer time)", done=not key_todo,
+        "key", GROWNUP, "Green-screen the wall shots", "5–20 min, computer time", done=not key_todo,
         skip=not keyed,
         body=[f"The computer cuts {director} out of the plain wall and puts them in the scene "
               f"({', '.join(key_todo) or 'all done'})."],
@@ -127,7 +127,7 @@ def steps(p):
     # 4. previews ----------------------------------------------------------------------
     todo = jobs(p)
     out.append(Step(
-        "previews", GROWNUP, "Make the choices", "5–15 min (computer time)", done=not todo,
+        "previews", GROWNUP, "Make the choices", "5–15 min, computer time", done=not todo,
         body=[f"The studio makes a real preview of every option {director} can choose from: "
               "the title styles, the channel names, the cut-outs, the voices, the endings."
               + (f" {len(todo)} to make." if todo else "")],
@@ -153,7 +153,7 @@ def steps(p):
     newest = max([_mtime(p.path)] + [_mtime(f) for f in (p.kit / "keyed").glob("*.mp4")]
                  if (p.kit / "keyed").exists() else [_mtime(p.path)])
     out.append(Step(
-        "assemble", GROWNUP, "Put the film together", "2–5 min (computer time)",
+        "assemble", GROWNUP, "Put the film together", "2–5 min, computer time",
         done=film.exists() and _mtime(film) >= newest,
         body=["The studio joins everything in the running order, with the picks, captions and levelled sound."],
         run=["kms assemble"],
