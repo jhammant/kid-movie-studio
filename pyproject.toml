@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kid-movie-studio"
+version = "0.1.0"
+description = "Make a real-looking movie with your kid: a plain-wall green screen, TV-style graphics, and every creative choice made by the kid."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "kms/fonts/OFL-*.txt"]
+authors = [{ name = "Jon Hammant" }]
+requires-python = ">=3.10"
+keywords = ["kids", "movie", "video", "green-screen", "ffmpeg", "family", "claude-code"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Video",
+    "Intended Audience :: End Users/Desktop",
+]
+dependencies = [
+    "numpy>=1.26,<3",
+    "opencv-python-headless>=4.9,<5",
+    "pillow>=10.3,<13",
+    "scipy>=1.11,<2",
+    "pyyaml>=6.0.1,<7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+kms = "kms.cli:main"
+
+[project.urls]
+Homepage = "https://kid-movie-studio.hammantlabs.com"
+Source = "https://github.com/jhammant/kid-movie-studio"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kms"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: renders full-length pieces (deselect with -m 'not slow')"]

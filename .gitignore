@@ -23,3 +23,7 @@ kit/
 *.MP4
 *.MOV
 *.wav
+.venv/
+
+# ...except the demo film for the website (toy robots only)
+!site/demo.mp4

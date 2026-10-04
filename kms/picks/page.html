@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Director's Picks</title>
+<style>
+/* A TV gallery wall. Each choice is a row of "monitors"; picking one lights its tally light.
+   Built for small hands on a tablet: big targets, one video playing at a time, sound only on a tap. */
+@font-face { font-family: "Bangers"; src: url("fonts/Bangers-Regular.ttf") format("truetype"); font-display: swap; }
+:root {
+  color-scheme: dark;
+  --bg: #0c1424; --panel: #142039; --bezel: #1d2b4a; --line: #2b3d63;
+  --fg: #eef2fb; --muted: #a3b2d1; --onair: #ef3b36; --tally: #ffc83d; --tally-ink: #241a00;
+  --display: "Bangers", "Arial Black", Impact, sans-serif;
+  --body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+:root[data-theme="light"] { color-scheme: light; --bg: #f3f5fb; --panel: #ffffff; --bezel: #1d2b4a; --line: #c9d3ea; --fg: #0c1424; --muted: #4a5878; --tally: #c98a00; --tally-ink: #fff; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 1.05rem; line-height: 1.5;
+       padding: 0 16px 120px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 44px; }
+header { display: grid; gap: 10px; padding-top: 28px; }
+.onair { display: inline-flex; align-items: center; gap: 8px; width: fit-content; font-family: var(--display);
+         font-size: 1rem; letter-spacing: 0.12em; color: var(--onair); border: 2px solid var(--onair); border-radius: 4px; padding: 2px 10px; }
+.onair i { width: 10px; height: 10px; border-radius: 50%; background: var(--onair); animation: blink 1.4s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.4rem, 8vw, 4.4rem); line-height: 1; margin: 0; letter-spacing: 0.02em; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 60ch; margin: 0; font-size: 1.15rem; }
+.lede b { color: var(--fg); }
+section { display: grid; gap: 16px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; border-bottom: 2px solid var(--line); padding-bottom: 8px; }
+.sec-head h2 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 0; letter-spacing: 0.03em; }
+.sec-head .num { color: var(--tally); }
+.sec-head p { margin: 0; color: var(--muted); flex: 1 1 260px; }
+.surprise { font: 700 1rem var(--body); cursor: pointer; border: 2px dashed var(--muted); color: var(--fg); background: transparent;
+            border-radius: 999px; padding: 8px 16px; min-height: 48px; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.card { display: grid; gap: 10px; align-content: start; min-width: 0; background: var(--panel); border: 3px solid var(--line);
+        border-radius: 12px; padding: 12px; position: relative; transition: border-color .15s, transform .15s; }
+.card.picked { border-color: var(--tally); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tally) 30%, transparent); }
+.card.shuffle { transform: scale(1.03); border-color: var(--fg); }
+.screen { aspect-ratio: 16 / 9; width: 100%; background: #000; border: 6px solid var(--bezel); border-radius: 8px; overflow: hidden; display: grid; place-items: center; }
+.screen.tall { aspect-ratio: 2 / 3; max-width: 260px; justify-self: center; }
+.screen video, .screen img { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+.screen.text { background: var(--bezel); padding: 16px; text-align: center; font-family: var(--display); font-size: clamp(1.4rem, 3.4vw, 2.1rem); line-height: 1.1; color: #fff; }
+.pending { color: #a3b2d1; text-align: center; padding: 12px; display: grid; gap: 6px; justify-items: center; }
+.bars { display: flex; gap: 4px; }
+.bars span { width: 8px; height: 18px; background: #2b3d63; animation: pulse 1.2s ease-in-out infinite; }
+.bars span:nth-child(2) { animation-delay: .15s; } .bars span:nth-child(3) { animation-delay: .3s; }
+@keyframes pulse { 50% { background: #a3b2d1; } }
+.label { display: flex; gap: 10px; align-items: baseline; }
+.letter { font-family: var(--display); font-size: 1.8rem; color: var(--tally); line-height: 1; }
+.name { font-weight: 700; font-size: 1.2rem; }
+.desc { margin: 0; color: var(--muted); }
+.pick { font: 700 1.15rem var(--body); cursor: pointer; border: 3px solid var(--tally); color: var(--tally); background: transparent;
+        border-radius: 999px; padding: 12px 18px; min-height: 56px; }
+.card.picked .pick { background: var(--tally); color: var(--tally-ink); }
+.pick:focus-visible, .surprise:focus-visible, textarea:focus-visible, .order button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+.stamp { position: absolute; top: -14px; right: 12px; display: none; font-family: var(--display); font-size: 1.1rem; letter-spacing: .08em;
+         background: var(--tally); color: var(--tally-ink); padding: 3px 12px; border-radius: 4px; transform: rotate(3deg); }
+.card.picked .stamp { display: block; }
+.order { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: scene; }
+.order li { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.order li::before { counter-increment: scene; content: counter(scene); font-family: var(--display); font-size: 1.6rem; color: var(--tally); width: 2ch; text-align: center; }
+.order .what { flex: 1; min-width: 0; } .order .what b { display: block; } .order .what span { color: var(--muted); font-size: .95rem; }
+.order button { font: 700 1.4rem var(--body); width: 56px; height: 56px; border-radius: 12px; border: 2px solid var(--line); background: var(--bezel); color: #fff; cursor: pointer; }
+.order button:disabled { opacity: .3; cursor: default; }
+textarea { width: 100%; min-height: 110px; resize: vertical; font: 1.1rem var(--body); color: var(--fg); background: var(--panel);
+           border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.done-banner { display: none; font-family: var(--display); font-size: 1.8rem; text-align: center; color: var(--tally-ink); background: var(--tally); border-radius: 12px; padding: 14px; }
+.done-banner.show { display: block; }
+.grownups { border-top: 2px dashed var(--line); padding-top: 20px; color: var(--muted); display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.grownups #qr { background: #fff; padding: 8px; border-radius: 8px; line-height: 0; }
+.grownups #qr:empty { display: none; }
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(8px); border-top: 2px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.dock-in { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.chip { font-weight: 700; } .chip span { color: var(--muted); font-weight: 400; }
+.status { margin-left: auto; color: var(--muted); font-size: .95rem; }
+@media (prefers-reduced-motion: reduce) { .onair i, .bars span { animation: none; } .card { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="onair"><i></i>ON AIR</span>
+    <h1 id="film-title">My Movie</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+  <div id="sections"></div>
+  <section aria-labelledby="order-h" id="order-sec" hidden>
+    <div class="sec-head"><h2 id="order-h"><span class="num" id="order-num"></span> Running order</h2>
+      <p>What happens first? Use the arrows to move a scene up or down.</p>
+      <button class="surprise" type="button" id="order-reset">Put it back</button></div>
+    <ol class="order" id="order"></ol>
+  </section>
+  <section aria-labelledby="note-h">
+    <div class="sec-head"><h2 id="note-h">Anything to change?</h2><p>Ideas, fixes, other words for the titles. A grown-up can type it for you.</p></div>
+    <label for="note" class="name">Note for the studio</label>
+    <textarea id="note" placeholder="e.g. make the title more sparkly, call the channel something else…"></textarea>
+  </section>
+  <div class="done-banner" id="done-banner" role="status">All picked! Tell your grown-up: “Roll the film!”</div>
+  <aside class="grownups" aria-label="For grown-ups">
+    <div id="qr"></div>
+    <div><b>For grown-ups:</b> <span id="grownup-text">picks save as soon as they're tapped.</span></div>
+  </aside>
+</div>
+<div class="dock" role="status" aria-live="polite"><div class="dock-in" id="dock"><div class="status" id="status">Loading…</div></div></div>
+
+<script id="kms-data" type="application/json">/*KMS_DATA*/</script>
+<script src="qrcode.js"></script>
+<script>
+const DATA = JSON.parse(document.getElementById("kms-data").textContent);
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const params = new URLSearchParams(location.search);
+const KEY = params.get("k") || "";
+let state = DATA.state;           // {title, director, groups, picks, ready, scenes}
+let picks = { ...(state.picks || {}) };
+const statusEl = document.getElementById("status");
+const root = document.getElementById("sections");
+let backend = null;               // { save(picks) -> Promise, poll? }
+
+function mediaUrl(path) {
+  if (!path) return null;
+  return DATA.backend === "local" ? `${path}${path.includes("?") ? "&" : "?"}k=${encodeURIComponent(KEY)}` : path;
+}
+
+function visibleGroups() { return state.groups.filter(g => !g.locked && g.options.length); }
+
+function build() {
+  document.getElementById("film-title").textContent = state.title;
+  document.title = `${state.title}: Director's Picks`;
+  const lede = document.getElementById("lede");
+  lede.innerHTML = "";
+  lede.append("Director ", Object.assign(document.createElement("b"), { textContent: state.director }),
+    ": watch each one, then tap Pick on your favourite. You can change your mind as much as you like.");
+  root.innerHTML = "";
+  visibleGroups().forEach((g, gi) => {
+    const sec = document.createElement("section");
+    sec.setAttribute("aria-labelledby", `h-${g.key}`);
+    sec.innerHTML = `<div class="sec-head"><h2 id="h-${g.key}"><span class="num"></span> <span class="t"></span></h2><p></p>
+      <button class="surprise" type="button">🎲 Surprise me!</button></div><div class="grid"></div>`;
+    sec.querySelector(".num").textContent = `${gi + 1}.`;
+    sec.querySelector(".t").textContent = g.heading;
+    sec.querySelector("p").textContent = g.blurb;
+    sec.querySelector(".surprise").addEventListener("click", () => surprise(g));
+    const grid = sec.querySelector(".grid");
+    g.options.forEach((o, oi) => {
+      const card = document.createElement("article");
+      card.className = "card"; card.dataset.key = g.key; card.dataset.id = o.id;
+      const screen = document.createElement("div");
+      screen.className = "screen" + (g.kind === "text" ? " text" : "") + (g.kind === "image" ? " tall" : "");
+      const label = document.createElement("div");
+      label.className = "label";
+      label.innerHTML = `<span class="letter"></span><span class="name"></span>`;
+      label.querySelector(".letter").textContent = LETTERS[oi] || "?";
+      label.querySelector(".name").textContent = o.name;
+      const desc = Object.assign(document.createElement("p"), { className: "desc", textContent: o.desc || "" });
+      const btn = Object.assign(document.createElement("button"), { className: "pick", type: "button" });
+      btn.addEventListener("click", () => choose(g.key, o.id));
+      const stamp = Object.assign(document.createElement("span"), { className: "stamp", textContent: "PICKED ★" });
+      card.append(stamp, screen, label, desc, btn);
+      grid.append(card);
+    });
+    root.append(sec);
+  });
+  fillScreens();
+  buildOrder();
+  render();
+}
+
+function fillScreens() {
+  document.querySelectorAll(".card").forEach(card => {
+    const g = state.groups.find(x => x.key === card.dataset.key);
+    const o = g.options.find(x => x.id === card.dataset.id);
+    const screen = card.querySelector(".screen");
+    if (g.kind === "text") { if (!screen.textContent) screen.textContent = o.name; return; }
+    const src = mediaUrl((state.ready[g.key] || {})[o.id]);
+    const has = screen.querySelector("video, img");
+    if (src && has) return;
+    screen.innerHTML = "";
+    if (!src) {
+      screen.innerHTML = `<div class="pending"><div class="bars"><span></span><span></span><span></span></div>Still making this one…</div>`;
+    } else if (g.kind === "image") {
+      screen.append(Object.assign(document.createElement("img"), { src, alt: o.name, loading: "lazy" }));
+    } else {
+      const poster = mediaUrl(((state.thumbs || {})[g.key] || {})[o.id]) || "";
+      const v = Object.assign(document.createElement("video"), { src, poster, controls: true, preload: "none", playsInline: true });
+      v.addEventListener("play", () => document.querySelectorAll("video").forEach(x => { if (x !== v) x.pause(); }));
+      screen.append(v);
+    }
+  });
+}
+
+function buildOrder() {
+  const sec = document.getElementById("order-sec");
+  if (!state.scenes || state.scenes.length < 2 || state.orderLocked) { sec.hidden = true; return; }
+  sec.hidden = false;
+  document.getElementById("order-num").textContent = `${visibleGroups().length + 1}.`;
+  const list = document.getElementById("order");
+  list.innerHTML = "";
+  const ids = currentOrder();
+  ids.forEach((id, i) => {
+    const s = state.scenes.find(x => x.id === id);
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="what"><b></b><span></span></div><button type="button" aria-label="Move up">▲</button><button type="button" aria-label="Move down">▼</button>`;
+    li.querySelector("b").textContent = s.label;
+    li.querySelector("span").textContent = s.desc || "";
+    const [up, down] = li.querySelectorAll("button");
+    up.disabled = i === 0; down.disabled = i === ids.length - 1;
+    up.addEventListener("click", () => move(i, -1));
+    down.addEventListener("click", () => move(i, 1));
+    list.append(li);
+  });
+}
+
+function currentOrder() {
+  const all = state.scenes.map(s => s.id);
+  const o = (picks.order || []).filter(id => all.includes(id));
+  return o.concat(all.filter(id => !o.includes(id)));
+}
+
+function move(i, d) {
+  const ids = currentOrder();
+  [ids[i], ids[i + d]] = [ids[i + d], ids[i]];
+  picks.order = ids;
+  buildOrder(); save();
+}
+
+document.getElementById("order-reset").addEventListener("click", () => { picks.order = null; buildOrder(); save(); });
+
+function optionLabel(g, id) {
+  const i = g.options.findIndex(o => o.id === id);
+  return i < 0 ? "–" : `${LETTERS[i]} · ${g.options[i].name}`;
+}
+
+function render() {
+  document.querySelectorAll(".card").forEach(c => {
+    const on = picks[c.dataset.key] === c.dataset.id;
+    c.classList.toggle("picked", on);
+    c.querySelector(".pick").textContent = on ? "Picked! ★" : "Pick this one";
+  });
+  const dock = document.getElementById("dock");
+  dock.querySelectorAll(".chip").forEach(x => x.remove());
+  visibleGroups().forEach(g => {
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `<span></span> <b></b>`;
+    chip.querySelector("span").textContent = g.heading;
+    chip.querySelector("b").textContent = picks[g.key] ? optionLabel(g, picks[g.key]) : "–";
+    dock.insertBefore(chip, statusEl);
+  });
+  const note = document.getElementById("note");
+  if (document.activeElement !== note && note.value !== (picks.note || "")) note.value = picks.note || "";
+  const all = visibleGroups().every(g => picks[g.key]);
+  document.getElementById("done-banner").classList.toggle("show", all);
+}
+
+function choose(key, id) {
+  picks[key] = picks[key] === id ? null : id;   // tap again to un-pick
+  render(); save();
+}
+
+function surprise(g) {
+  const cards = [...document.querySelectorAll(`.card[data-key="${g.key}"]`)];
+  const target = Math.floor(Math.random() * cards.length);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let step = 0; const steps = reduce ? 0 : cards.length * 2 + target;
+  const tick = () => {
+    cards.forEach((c, i) => c.classList.toggle("shuffle", i === step % cards.length));
+    if (step++ < steps) return setTimeout(tick, 70 + step * 6);
+    cards.forEach(c => c.classList.remove("shuffle"));
+    picks[g.key] = cards[target].dataset.id;
+    render(); save();
+    cards[target].scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  };
+  tick();
+}
+
+let noteTimer = null;
+document.getElementById("note").addEventListener("input", e => {
+  picks.note = e.target.value;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(save, 800);
+});
+
+let writing = Promise.resolve();
+function save() {
+  if (!backend) { statusEl.textContent = "Picks show here. Tell your grown-up which ones you chose"; return; }
+  statusEl.textContent = "Saving…";
+  const body = { ...picks };
+  writing = writing.then(() => backend.save(body)).then(
+    () => { statusEl.textContent = "Saved ✓"; },
+    () => { statusEl.textContent = "Couldn't save. Try again, or tell your grown-up"; });
+}
+
+// ---- backend 1: the local studio server (kms picks) -------------------------------------
+function localBackend() {
+  const api = p => `${p}?k=${encodeURIComponent(KEY)}`;
+  async function refresh() {
+    const r = await fetch(api("api/state"));
+    if (!r.ok) throw new Error(r.status);
+    const fresh = await r.json();
+    const groupsChanged = JSON.stringify(fresh.groups) !== JSON.stringify(state.groups);
+    state = fresh;
+    if (groupsChanged) build(); else fillScreens();
+  }
+  setInterval(() => refresh().catch(() => { statusEl.textContent = "Lost the studio. Is `kms picks` still running?"; }), 4000);
+  const url = location.href;
+  if (window.qrcode) {
+    const q = qrcode(0, "M"); q.addData(url); q.make();
+    document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: false });
+    document.getElementById("grownup-text").textContent =
+      "scan this with the tablet's camera to open the pick page there (same Wi-Fi). Picks save on this computer, in movie.yaml.";
+  }
+  return {
+    save: async body => {
+      const r = await fetch(api("api/picks"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(await r.text());
+      state = await r.json();
+    },
+  };
+}
+
+// ---- backend 2: a claude.ai artifact with a db --------------------------------------------
+async function artifactBackend() {
+  const db = await window.claude?.use?.("db");
+  if (!db) return null;
+  const doc = db.doc("choices/picks");
+  doc.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data() || {};
+    for (const g of state.groups) picks[g.key] = d[g.key] ?? null;
+    picks.order = d.order || null;
+    if (document.activeElement !== document.getElementById("note")) picks.note = d.note || "";
+    buildOrder(); render();
+  }, () => { statusEl.textContent = "Live updates stopped. Refresh the page"; });
+  document.getElementById("grownup-text").textContent = "picks save to this page; ask Claude to read them back.";
+  return { save: body => doc.set({ ...body, updatedAt: new Date().toISOString() }) };
+}
+
+build();
+(async () => {
+  try {
+    backend = DATA.backend === "local" ? localBackend() : await artifactBackend();
+  } catch (e) { backend = null; }
+  statusEl.textContent = backend ? "Picks save automatically" : "Picks show here. Tell your grown-up which ones you chose";
+})();
+</script>
+</body>
+</html>

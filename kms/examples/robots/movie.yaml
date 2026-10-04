@@ -1,0 +1,126 @@
+# movie.yaml: one film, made by a grown-up and a kid as a team.
+#
+# Fill this in TOGETHER. Read the questions out loud and type what your director says.
+# Everything the film shows is a choice the kid makes later on the pick page, so you
+# don't need to decide how it looks here, just what it's about and who's in it.
+#
+# Run `kms next` at any time and the studio tells you what to do next.
+
+# What's the film called? (Short and loud works best: 1–4 words.)
+title: ROBOTS REVENGE
+
+# One line that would go on the poster.
+tagline: The robots strike back
+
+# Which pack of looks and sounds to use. v1 ships the "news" pack: a TV news report.
+pack: news
+
+# Frames per second. 25 suits the UK and Europe, 30 suits the US. Match your camera.
+fps: 25
+
+# The real crew. First names or nicknames only. This file stays on your computer.
+crew:
+  director: Sam        # the kid: they make every choice, so they're the Director
+  grownup: Alex        # you: camera, computer and snacks
+
+# Who's in the story? Made-up character names are half the fun.
+cast:
+  - character: Rex Newsome
+    role: Newsreader
+    actor: Alex
+  - character: Penny Sparks
+    role: Roving Reporter · The Battlefield
+    actor: Sam
+
+# The words the news pack puts on screen.
+story:
+  programme: THE NINE O'CLOCK NEWS
+  headline: ROBOT INVASION CONTINUES
+  crawl:
+    - ROBOT INVASION CONTINUES
+    - PEOPLE TOLD TO STAY IN THEIR HOMES
+    - RESIDENTS FIGHT BACK WITH WATER
+    - MORE ON THIS STORY AT NINE
+  villain: ROBOT                       # who the baddies are (one word)
+  villain_line: "We'll see, Penny... We'll see..."
+  hero: Penny                          # the name the villain says; the voices are checked for it
+  ending: To Be Continued              # the words on the end card
+
+# Ideas for the news channel's name. The kid picks one on the pick page.
+# "{director}" becomes the director's name, so the first one here is "Sam Broadcasting Corporation".
+channels:
+  - name: "{initial}BC NEWS"
+    strapline: "{director} Broadcasting Corporation"
+  - name: ROBOT WATCH 9
+  - name: ""                           # no channel name, just the programme title
+  - name: PENNY SPARKS LIVE
+
+# The running order. Each scene is one of:
+#   pick: <group>   a piece made from the kid's pick (title, channel, signal, ending...)
+#   make: <thing>   a piece the studio makes from this file (credits, villain-line)
+#   clip: <file>    a clip from footage/, with optional from/to (seconds) and a caption
+#   key: <file>     a plain-wall green-screen take from footage/, keyed over a background
+# `shot:` describes the shot, so `kms next` can give you a shot list for filming day.
+# For a `key:` scene, film a few seconds of the empty wall at the end of the same take
+# (`plate:` says where), plus a `background:` clip to put behind the action.
+scenes:
+  - id: title
+    pick: title
+
+  - id: news-intro
+    pick: channel
+
+  - id: desk-intro
+    clip: desk-intro.mp4
+    shot: Rex at a desk, looking at the camera, introducing tonight's news.
+    from: 0.8
+    to: 33.6
+    caption: Rex Newsome                # name caption (lower third) for this cast member
+    caption_at: [1.5, 7.0]
+    level: dialogue
+
+  - id: penny-live
+    key: wall-take.mp4
+    shot: Penny in front of a plain painted wall, reporting live from the battlefield.
+    plate: {from: 9.0, for: 6.0}        # where the empty wall is, in the same take
+    background: water-robots.mp4
+    background_shot: Toy robots on the lawn getting sprayed with the hose. No people in this one.
+    from: 0
+    to: 9.0
+    caption: Penny Sparks
+    caption_live: true
+    caption_at: [1.0, 7.0]
+
+  - id: robot-walk
+    clip: robot-walk.mp4
+    shot: A toy robot walking towards the camera until its foot fills the screen.
+
+  - id: signal
+    pick: signal
+    lead_in: robot-walk                  # freezes on this scene's last frame first
+
+  - id: desk-worried
+    clip: desk-worried.mp4
+    shot: Back at the desk, Rex is worried. "Penny? Penny?!"
+    level: dialogue
+
+  - id: credits
+    make: credits
+
+  - id: villain-line
+    make: villain-line
+    clip: robot-chair.mp4
+    shot: A close-up of the toy robot, sitting very still. Hold it for 10 seconds.
+    voice_at: 1.0                        # when the robot speaks, in seconds
+
+  - id: ending
+    pick: ending
+
+# Grown-up controls (optional). Hide an option, or lock a choice so it isn't offered.
+# choices:
+#   title: {hide: [warning]}
+#   signal: {lock: static}
+
+# ---- The director's picks. The pick page writes these; `kms assemble` reads only these.
+# Leave this block last in the file.
+picks: {}
