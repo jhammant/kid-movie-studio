@@ -12,8 +12,8 @@ captions, a signal-lost glitch, a villain's voice, credits and an end card. Then
 every creative decision to the kid.
 
 - **The kid directs.** Every choice in the film (the title style, the channel name, what
-  happens when the camera gets smashed, the villain's voice, the ending, the poster, the
-  running order, even their job title in the credits) is a pick they make from real
+  happens when the camera gets smashed, the villain's voice, whether its eyes glow, the
+  ending, the poster, the running order, even their job title in the credits) is a pick they make from real
   previews on a tablet. The previews are the finished pieces, so what they pick is exactly
   what ends up in the film.
 - **The grown-up gets guided.** `kms next` tells you what to do now, who does it (you,
