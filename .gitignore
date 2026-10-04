@@ -1,0 +1,25 @@
+.DS_Store
+.env
+.env.*
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+scratchpads/
+
+# Local-only: handoff notes, agent transcripts and backups. These name real people and never go public.
+.sessions/
+.private/
+FORK.md
+STATE.md
+
+# Footage and renders stay on your machine
+footage/
+kit/
+*.mp4
+*.mov
+*.MP4
+*.MOV
+*.wav
