@@ -1,0 +1,23 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    env:
+      KMS_FONTS: bundled
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg and espeak-ng
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: uv pip install --system -e '.[dev]'
+      - name: Fast tests (no real footage needed)
+        run: pytest -m "not slow" -q
