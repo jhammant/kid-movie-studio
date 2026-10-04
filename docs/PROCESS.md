@@ -9,6 +9,9 @@ Names below are the film's characters, not real people: **Rex Newsome** (the
 newsreader, played by the grown-up) and **Penny Sparks** (the roving reporter, played
 by the kid, who was also the director).
 
+The scripts from that afternoon have since become the `kms` package, so the names below
+are today's: `kms key`, `kms previews`, `kms picks`, `kms assemble`.
+
 ## 1. Look at the footage before deciding anything
 
 - **Inventory.** Run `ffprobe` on every clip to get its resolution, frame rate and
@@ -38,7 +41,7 @@ Write it down early and treat it as the spec.
 ## 3. Green screen on a wall that isn't green
 
 The "green" was a sage/olive painted wall, and the light changed between takes, so
-iMovie's keyer and ffmpeg's `chromakey` both struggled. `tools/keyer.py` works like
+iMovie's keyer and ffmpeg's `chromakey` both struggled. `kms/keyer.py` works like
 this:
 
 1. **Clean plate.** Take the median of the empty-wall frames at the end of the take.
@@ -56,9 +59,8 @@ this:
    the soft edge band.
 
 It writes the composite and a "subject on pure green" version (for iMovie's own
-Green/Blue Screen tool) in one pass. Long takes go through `tools/render_parallel.sh`,
-which runs three slices in parallel. Background plates are looped with
-`tools/make_bg_loop.sh`.
+Green/Blue Screen tool) in one pass. Long takes are keyed in three parallel slices, and short background plates are looped
+with a crossfade (both in `kms/key.py`, run by `kms key`).
 
 **Tip:** film 3–5 s of the empty wall after every green-screen take, in the same light,
 and keep the camera still.
@@ -80,7 +82,7 @@ That's what made the outputs consistent and iMovie-safe:
 - Scratch in your own folder; don't kill processes you didn't start; nice -n 10 encodes.
 - Verify before reporting: extract ~4 frames and LOOK at them; ffprobe size/fps/audio;
   volumedetect. Report paths, durations, one line each on look and sound, caveats.
-- Save a re-runnable script in tools/ taking the output path as argv[1].
+- Save a re-runnable generator in kms/render/ taking the output path as its first argument.
 ```
 
 These were the briefs, one line each (a sequel can reuse them with new wording):
@@ -102,16 +104,16 @@ After the agents finished, some things still needed a human or orchestrator pass
 
 ## 5. Let the kid choose on a web page
 
-A web page (`tools/picks_page.html`) showed a video for each option and a Pick button.
+A web page (today's `kms picks`) showed a video for each option and a Pick button.
 Picks were saved to the page's database (`choices/family` →
-`{title, channel, signal, voice, note}`), and Claude read them back. `tools/picks_page.py`
+`{title, channel, signal, voice, note}`), and Claude read them back. The studio
 makes 960 px web copies of whatever previews exist and fills them in, so the page goes
 live early and fills up as the agents finish. The kid picked on it while renders ran.
 It worked well; reuse it.
 
 ## 6. Assemble, check, fix, repeat
 
-`tools/assemble.py --title C --channel A --signal A` conforms every piece to
+The assembly step (today's `kms assemble`, which reads the picks) conforms every piece to
 1080p/25/48k, overlays the lower thirds, normalises loudness, and joins the pieces with
 hard cuts. It skips pieces that aren't ready, so the family could watch "the film so
 far" early. Each preview turned up real fixes:
@@ -119,7 +121,7 @@ far" early. Each preview turned up real fixes:
 - **The best moment was cut off** (the kid popping back up, screaming). We fixed the
   keyer instead of hiding the moment.
 - **The wrong water clip.** We swapped the background and re-keyed in parallel slices.
-- **The kid was too quiet** (−30 LUFS against the grown-up's −17). `tools/loudness.py`
+- **The kid was too quiet** (−30 LUFS against the grown-up's −17). `kms/loudness.py`
   compresses, then levels the kid to −15. Plain normalising made it *worse*, because the
   screams set the peak.
 - **The titles and the BEEP were too loud.** We normalised the graphics to −17 LUFS in
@@ -136,7 +138,7 @@ Measure the loudness of each section of the finished film
 - **A phone:** encode a ~45 MB copy (`-crf 24 -maxrate 3M`) and send it to yourself.
 - **A home media server (Plex, Jellyfin):** give it its own folder, rate it **U**/**G**
   so kids' profiles can see it, lock the title and summary so the server doesn't match
-  it to a real film, and upload the poster and fanart from `tools/cover_art.py`.
+  it to a real film, and upload the poster and fanart from `kms export --media-server`.
 
 ## Where things live
 

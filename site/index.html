@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kid Movie Studio</title>
+<meta name="description" content="Make a real-looking movie with your kid. A plain wall instead of a green screen, TV-style graphics, and every creative choice made by the kid.">
+<meta property="og:title" content="Kid Movie Studio">
+<meta property="og:description" content="The kid directs. The grown-up gets guided. The computer does the fiddly bits.">
+<meta property="og:image" content="https://kid-movie-studio.hammantlabs.com/demo.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<style>
+@font-face { font-family: "Bangers"; src: url("Bangers-Regular.ttf") format("truetype"); font-display: swap; }
+:root {
+  --bg: #0c1424; --panel: #142039; --bezel: #1d2b4a; --line: #2b3d63;
+  --fg: #eef2fb; --muted: #a3b2d1; --onair: #ef3b36; --tally: #ffc83d; --tally-ink: #241a00;
+  --display: "Bangers", "Arial Black", Impact, sans-serif;
+  --body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #f4f6fb; --panel: #fff; --bezel: #1d2b4a; --line: #d3dbee; --fg: #0c1424; --muted: #4a5878; --tally: #b77d00; --tally-ink: #fff; }
+}
+:root[data-theme="light"] { --bg: #f4f6fb; --panel: #fff; --bezel: #1d2b4a; --line: #d3dbee; --fg: #0c1424; --muted: #4a5878; --tally: #b77d00; --tally-ink: #fff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 1.08rem/1.6 var(--body); padding: 0 16px; }
+.wrap { max-width: 1080px; margin: 0 auto; }
+a { color: inherit; text-decoration-color: var(--tally); text-underline-offset: 3px; }
+header.hero { display: grid; gap: 22px; padding: 56px 0 40px; }
+.onair { display: inline-flex; align-items: center; gap: 8px; width: fit-content; font-family: var(--display); letter-spacing: .12em;
+         color: var(--onair); border: 2px solid var(--onair); border-radius: 4px; padding: 2px 10px; }
+.onair i { width: 10px; height: 10px; border-radius: 50%; background: var(--onair); animation: blink 1.4s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.8rem, 9vw, 5.6rem); line-height: .95; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h1 span { color: var(--tally); }
+.lede { font-size: 1.3rem; max-width: 46ch; margin: 0; color: var(--muted); }
+.lede b { color: var(--fg); }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { font: 700 1.05rem var(--body); border-radius: 999px; padding: 12px 22px; text-decoration: none; border: 2px solid var(--tally); }
+.btn.primary { background: var(--tally); color: var(--tally-ink); }
+.tv { border: 10px solid var(--bezel); border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16/9; box-shadow: 0 20px 60px #0007; }
+.tv video, .tv img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.caption { color: var(--muted); font-size: .95rem; margin: 8px 2px 0; }
+section { padding: 48px 0; border-top: 2px solid var(--line); }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 5vw, 2.8rem); margin: 0 0 18px; letter-spacing: .02em; }
+.three { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.card { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 20px; }
+.card h3 { margin: 0 0 6px; font-size: 1.25rem; }
+.card p { margin: 0; color: var(--muted); }
+.who { font-family: var(--display); letter-spacing: .06em; font-size: 1.05rem; color: var(--tally); }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 3ch 1fr auto; gap: 14px; align-items: baseline; background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.steps li::before { counter-increment: s; content: counter(s); font-family: var(--display); font-size: 1.6rem; color: var(--tally); }
+.steps .tag { color: var(--muted); font-size: .95rem; white-space: nowrap; }
+@media (max-width: 560px) { .steps li { grid-template-columns: 3ch 1fr; } .steps .tag { grid-column: 2; } }
+pre { background: #070c17; color: #d9e2f5; border: 2px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; font: .95rem/1.6 var(--mono); }
+.wall { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); align-items: center; }
+.tip { border-left: 4px solid var(--tally); padding: 4px 0 4px 14px; margin: 16px 0 0; }
+footer { padding: 36px 0 60px; color: var(--muted); border-top: 2px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 24px; }
+@media (prefers-reduced-motion: reduce) { .onair i { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <span class="onair"><i></i>ON AIR</span>
+    <h1>Make a real movie <span>with your kid.</span></h1>
+    <p class="lede">A plain wall instead of a green screen. TV-style titles, a news intro with the pips, a villain's voice and credits. And <b>every creative choice is made by the kid.</b></p>
+    <div class="cta">
+      <a class="btn primary" href="#start">Make your first film</a>
+      <a class="btn" href="https://github.com/jhammant/kid-movie-studio">GitHub</a>
+    </div>
+    <div>
+      <div class="tv"><video src="demo.mp4" poster="demo.jpg" controls playsinline preload="none"></video></div>
+      <p class="caption">The demo film: drawn toy robots, keyed off a painted wall. No real people were filmed.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Three jobs, one team</h2>
+    <div class="three">
+      <div class="card"><div class="who">⭐ The kid directs</div><h3>Every choice is theirs</h3>
+        <p>The title style, the channel name, the cut-out, the villain's voice, the ending, the poster, the running order. They watch real previews on a tablet and tap Pick.</p></div>
+      <div class="card"><div class="who">👤 The grown-up is guided</div><h3>What to do next, and what to say</h3>
+        <p><code>kms next</code> tells you the step, who does it, and how to keep the kid in charge. "You say Action! and Cut! That's the director's job."</p></div>
+      <div class="card"><div class="who">🤖 The computer does the fiddly bits</div><h3>Keying, graphics, sound</h3>
+        <p>It cuts the kid out of the wall, makes every graphic, levels the screams and the whispers, and builds the film from the picks.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How a film gets made</h2>
+    <ol class="steps">
+      <li><span>Plan it: the title, the cast, the villain</span><span class="tag">🤝 together</span></li>
+      <li><span>Filming day, with a shot list made for you</span><span class="tag">🤝 together</span></li>
+      <li><span>Green-screen the plain-wall shots</span><span class="tag">👤 grown-up</span></li>
+      <li><span>Render a real preview of every option</span><span class="tag">👤 grown-up</span></li>
+      <li><span>Pick the look of the film on a tablet</span><span class="tag">⭐ the director</span></li>
+      <li><span>Put it together from the picks</span><span class="tag">👤 grown-up</span></li>
+      <li><span>The premiere. Then re-pick anything and go again</span><span class="tag">🤝 together</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>No green screen? No problem.</h2>
+    <div class="wall">
+      <div>
+        <p>Any plain painted wall works. Film your scene, then <b>keep filming the empty wall for five seconds</b>. That "clean plate" lets the studio relight every frame and tell wall from hair, even when the sun goes in.</p>
+        <p class="tip">Wear colours that aren't the wall's. A green jumper on a green wall is an invisible jumper.</p>
+      </div>
+      <div class="tv"><img src="keyed.jpg" alt="A toy robot reporter keyed out of a painted wall and into a robot battlefield" loading="lazy"></div>
+    </div>
+  </section>
+
+  <section id="start">
+    <h2>Make your first film</h2>
+    <p>You need Python 3.10+ and ffmpeg. Everything runs on your computer; no footage is uploaded anywhere.</p>
+<pre><code>pipx install git+https://github.com/jhammant/kid-movie-studio
+kms demo robot-demo --film     # try it: a toy-robot film, no real people
+kms init my-film --director Robin
+cd my-film && kms next          # the guide takes it from here</code></pre>
+    <p>Using Claude Code? <code>kms skill --install</code> adds an assistant director that coaches you through it and never makes a choice for the kid.</p>
+  </section>
+
+  <footer>
+    <span>Kid Movie Studio · MIT licence</span>
+    <a href="https://github.com/jhammant/kid-movie-studio">Source on GitHub</a>
+    <a href="https://github.com/jhammant/kid-movie-studio/blob/main/docs/PARENTS.md">A parent's guide to filming day</a>
+  </footer>
+</div>
+</body>
+</html>
