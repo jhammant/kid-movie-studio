@@ -136,6 +136,11 @@ pytest -m "not slow"          # fast checks; `pytest` renders every piece at ful
 Every generator lives in `kms/render/` and can be run on its own, e.g.
 `python -m kms.render.title_computer out.mp4 --title "THE DINOSAUR DISCO"`.
 
+The launch page in `site/` is published at kid-movie-studio.hammantlabs.com. That hosted
+copy counts page views with a cookieless loader (no cookies, no click tracking). It is
+tied to that host name, so a fork or a local copy loads nothing, and `kms` itself never
+calls it.
+
 ## Licence
 
 MIT. The bundled fonts are under the SIL Open Font License (see `kms/fonts/OFL-*.txt`),
